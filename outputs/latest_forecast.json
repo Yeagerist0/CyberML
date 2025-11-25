@@ -1,0 +1,24 @@
+{
+  "forecast_date": "2025-11-26",
+  "target_week": "2025-12-01 05:22:15.781856",
+  "predicted_risk_level": "LOW",
+  "confidence": 0.8883411781717591,
+  "anomaly_score": 0.0,
+  "risk_probabilities": {
+    "LOW": 0.8883411781717591,
+    "MEDIUM": 0.0310117995391503,
+    "HIGH": 0.036940808153367956,
+    "CRITICAL": 0.04370621413572268
+  },
+  "active_anomaly_signals": {
+    "honeypot_total_attacks_iqr_anomaly": 1.0,
+    "honeypot_total_attacks_anomaly_score": 0.3333333333333333,
+    "cve_critical_count_iqr_anomaly": 1.0,
+    "cve_critical_count_anomaly_score": 0.3333333333333333,
+    "poc_new_count_iqr_anomaly": 1.0,
+    "poc_new_count_anomaly_score": 0.3333333333333333,
+    "shodan_vulnerable_services_iqr_anomaly": 1.0,
+    "shodan_vulnerable_services_anomaly_score": 0.3333333333333333,
+    "composite_anomaly_score": 0.26666666666666666
+  }
+}
