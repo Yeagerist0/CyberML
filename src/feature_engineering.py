@@ -169,6 +169,8 @@ class TextEmbeddingGenerator:
         
     def _init_embedder(self):
         """Initialize the sentence transformer model."""
+        if not self.use_pretrained:
+            return
         try:
             from sentence_transformers import SentenceTransformer
             self.embedder = SentenceTransformer('all-MiniLM-L6-v2')
