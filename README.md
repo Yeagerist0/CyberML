@@ -2,6 +2,11 @@
 
 **Forecast next-week risk level of attacks on public-facing services using OSINT signals and adversary activity indicators.**
 
+> **Read this first: every number and chart in this repo comes from synthetic data.**
+> With no feed files in `data/`, the loaders generate random honeypot, Shodan and CVE records (`np.random`, fixed seeds). The label is derived from those same random signals. The committed model, `outputs/` charts, the evaluation report and the sample forecast below show the pipeline running end to end. They say nothing about how well it would predict real attacks.
+> The evaluation is also tiny: a temporal 80/20 split leaves 11 test weeks, so one week moves accuracy by 9 points. Two of the four classes (LOW, MEDIUM) have a single test example each and score 0.
+> Not built yet: loaders for real feeds, a baseline to beat (for example "same level as last week"), and a test on data this code did not generate.
+
 ## Overview
 
 This ML system provides proactive defense capabilities by analyzing multiple OSINT (Open Source Intelligence) data sources to predict elevated attack risk before incidents occur. It targets sectors like education, government, healthcare, and critical infrastructure.
@@ -156,7 +161,7 @@ report = evaluator.generate_report(y_true, y_pred, y_proba)
 - **Response Time Benefit**: Estimated hours saved per warning
 - **False Alarm Rate**: Percentage of false positive predictions
 
-## Sample Output
+## Sample Output (synthetic data)
 
 ```
 ============================================================
@@ -183,7 +188,7 @@ Active Anomaly Signals:
 
 ## Data Format
 
-The system can work with sample/synthetic data or real OSINT feeds. For real data:
+With no files in `data/`, it falls back to the generated data described at the top. To use real feeds, put them in these formats (loaders for live APIs are not written):
 
 ### Honeypot Data (JSON Lines or CSV)
 ```json
