@@ -215,8 +215,12 @@ class TextEmbeddingGenerator:
                 'poc_cluster_density': 0.0
             }
         
-        poc_embeddings = self.generate_embeddings(poc_texts)
-        intel_embeddings = self.generate_embeddings(intel_texts)
+        # Fit the TF-IDF fallback on one shared vocabulary. Fitting the two
+        # corpora separately makes equal vector positions mean different words
+        # and renders cross-source cosine similarity meaningless.
+        all_embeddings = self.generate_embeddings(poc_texts + intel_texts)
+        poc_embeddings = all_embeddings[:len(poc_texts)]
+        intel_embeddings = all_embeddings[len(poc_texts):]
         
         # Compute cosine similarities
         from sklearn.metrics.pairwise import cosine_similarity
