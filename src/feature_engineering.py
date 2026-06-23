@@ -192,7 +192,12 @@ class TextEmbeddingGenerator:
         from sklearn.decomposition import TruncatedSVD
         
         vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
-        tfidf_matrix = vectorizer.fit_transform(texts)
+        try:
+            tfidf_matrix = vectorizer.fit_transform(texts)
+        except ValueError:
+            # All-empty or stop-word-only corpora have no vocabulary. Keep
+            # the output shape stable instead of failing the whole pipeline.
+            return np.zeros((len(texts), 384))
         
         # Reduce to 384 dimensions to match sentence transformer output
         n_components = min(384, tfidf_matrix.shape[1] - 1, tfidf_matrix.shape[0] - 1)
