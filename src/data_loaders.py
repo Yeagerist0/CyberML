@@ -310,12 +310,19 @@ class DataAggregator:
             date_col = self._get_date_column(df)
             if date_col:
                 all_dates.extend(pd.to_datetime(df[date_col]).tolist())
+
+        if not all_dates:
+            raise ValueError("cannot aggregate weekly features without dated source records")
         
         min_date = min(all_dates)
         max_date = max(all_dates)
         
         # Create weekly periods
-        weeks = pd.date_range(min_date, max_date, freq='W-MON')
+        # Start on the Monday containing the first record. Starting at the
+        # next Monday silently discards the first partial week of signals.
+        first_week = pd.Timestamp(min_date).normalize()
+        first_week -= pd.Timedelta(days=first_week.weekday())
+        weeks = pd.date_range(first_week, max_date, freq='W-MON')
         
         weekly_data = []
         for week_start in weeks:
