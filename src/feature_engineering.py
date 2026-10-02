@@ -281,21 +281,29 @@ class TargetLabelGenerator:
         
         # Target: next week's risk level (shifted by -1)
         df['next_week_risk_score'] = df['current_risk_score'].shift(-1)
+
+        valid_scores = df['next_week_risk_score'].dropna()
+        if valid_scores.empty:
+            df['next_week_risk_level'] = np.nan
+            df['next_week_elevated_risk'] = np.nan
+            return df
         
         # Categorize into risk levels using percentiles
         thresholds = np.percentile(
-            df['next_week_risk_score'].dropna(), 
+            valid_scores,
             self.risk_thresholds['default']
         )
         
-        df['next_week_risk_level'] = pd.cut(
-            df['next_week_risk_score'],
-            bins=[-np.inf, thresholds[0], thresholds[1], thresholds[2], np.inf],
-            labels=[0, 1, 2, 3]  # LOW, MEDIUM, HIGH, CRITICAL
-        ).astype(float)
+        # Searchsorted preserves pd.cut's right-closed thresholds while also
+        # handling tied percentiles (common in sparse weekly signals).
+        levels = np.searchsorted(thresholds, df['next_week_risk_score'].fillna(0), side='left')
+        df['next_week_risk_level'] = pd.Series(levels, index=df.index, dtype=float).where(
+            df['next_week_risk_score'].notna()
+        )
         
         # Binary classification: elevated risk (HIGH or CRITICAL)
-        df['next_week_elevated_risk'] = (df['next_week_risk_level'] >= 2).astype(float)
+        elevated = (df['next_week_risk_level'] >= 2).astype(float)
+        df['next_week_elevated_risk'] = elevated.where(df['next_week_risk_level'].notna())
         
         return df
     
