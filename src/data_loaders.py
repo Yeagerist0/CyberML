@@ -11,6 +11,22 @@ from typing import Dict, List, Optional, Tuple
 import hashlib
 
 
+def _read_data_file(path: Path) -> pd.DataFrame:
+    """Read one supported source format without treating JSON Lines as CSV."""
+    if path.suffix.lower() in {'.json', '.jsonl'}:
+        return pd.read_json(path, lines=True)
+    return pd.read_csv(path)
+
+
+def _source_path(data_dir: Path, name: str) -> Path:
+    """Prefer a populated data file over the repo's empty placeholder."""
+    for suffix in ('.jsonl', '.json', '.csv'):
+        candidate = data_dir / f'{name}{suffix}'
+        if candidate.is_file() and candidate.stat().st_size > 0:
+            return candidate
+    return data_dir / name
+
+
 class HoneypotLoader:
     """Load and parse honeypot telemetry data."""
     
@@ -19,15 +35,13 @@ class HoneypotLoader:
         
     def load(self) -> pd.DataFrame:
         """Load honeypot data from file or generate sample data."""
-        if self.data_path.exists() and self.data_path.stat().st_size > 0:
+        if self.data_path.is_file() and self.data_path.stat().st_size > 0:
             return self._load_from_file()
         return self._generate_sample_data()
     
     def _load_from_file(self) -> pd.DataFrame:
         """Load from actual honeypot logs (JSON lines or CSV)."""
-        if str(self.data_path).endswith('.json'):
-            return pd.read_json(self.data_path, lines=True)
-        return pd.read_csv(self.data_path)
+        return _read_data_file(self.data_path)
     
     def _generate_sample_data(self) -> pd.DataFrame:
         """Generate realistic sample honeypot telemetry."""
@@ -79,14 +93,12 @@ class ShodanLoader:
         
     def load(self) -> pd.DataFrame:
         """Load Shodan data."""
-        if self.data_path.exists() and self.data_path.stat().st_size > 0:
+        if self.data_path.is_file() and self.data_path.stat().st_size > 0:
             return self._load_from_file()
         return self._generate_sample_data()
     
     def _load_from_file(self) -> pd.DataFrame:
-        if str(self.data_path).endswith('.json'):
-            return pd.read_json(self.data_path, lines=True)
-        return pd.read_csv(self.data_path)
+        return _read_data_file(self.data_path)
     
     def _generate_sample_data(self) -> pd.DataFrame:
         """Generate sample Shodan-like exposure data."""
@@ -136,14 +148,12 @@ class CVELoader:
         
     def load(self) -> pd.DataFrame:
         """Load CVE data."""
-        if self.data_path.exists() and self.data_path.stat().st_size > 0:
+        if self.data_path.is_file() and self.data_path.stat().st_size > 0:
             return self._load_from_file()
         return self._generate_sample_data()
     
     def _load_from_file(self) -> pd.DataFrame:
-        if str(self.data_path).endswith('.json'):
-            return pd.read_json(self.data_path, lines=True)
-        return pd.read_csv(self.data_path)
+        return _read_data_file(self.data_path)
     
     def _generate_sample_data(self) -> pd.DataFrame:
         """Generate sample CVE data."""
@@ -186,14 +196,12 @@ class GitHubPoCLoader:
         
     def load(self) -> pd.DataFrame:
         """Load GitHub PoC data."""
-        if self.data_path.exists() and self.data_path.stat().st_size > 0:
+        if self.data_path.is_file() and self.data_path.stat().st_size > 0:
             return self._load_from_file()
         return self._generate_sample_data()
     
     def _load_from_file(self) -> pd.DataFrame:
-        if str(self.data_path).endswith('.json'):
-            return pd.read_json(self.data_path, lines=True)
-        return pd.read_csv(self.data_path)
+        return _read_data_file(self.data_path)
     
     def _generate_sample_data(self) -> pd.DataFrame:
         """Generate sample GitHub PoC data."""
@@ -236,14 +244,12 @@ class ThreatIntelLoader:
         
     def load(self) -> pd.DataFrame:
         """Load threat intel data."""
-        if self.data_path.exists() and self.data_path.stat().st_size > 0:
+        if self.data_path.is_file() and self.data_path.stat().st_size > 0:
             return self._load_from_file()
         return self._generate_sample_data()
     
     def _load_from_file(self) -> pd.DataFrame:
-        if str(self.data_path).endswith('.json'):
-            return pd.read_json(self.data_path, lines=True)
-        return pd.read_csv(self.data_path)
+        return _read_data_file(self.data_path)
     
     def _generate_sample_data(self) -> pd.DataFrame:
         """Generate sample threat intel data."""
@@ -286,11 +292,11 @@ class DataAggregator:
     def __init__(self, data_dir: Path):
         self.data_dir = data_dir
         self.loaders = {
-            "honeypot": HoneypotLoader(data_dir / "honeypot"),
-            "shodan": ShodanLoader(data_dir / "shodan"),
-            "cve": CVELoader(data_dir / "cve"),
-            "github_poc": GitHubPoCLoader(data_dir / "github_poc"),
-            "threat_intel": ThreatIntelLoader(data_dir / "threat_intel"),
+            "honeypot": HoneypotLoader(_source_path(data_dir, "honeypot")),
+            "shodan": ShodanLoader(_source_path(data_dir, "shodan")),
+            "cve": CVELoader(_source_path(data_dir, "cve")),
+            "github_poc": GitHubPoCLoader(_source_path(data_dir, "github_poc")),
+            "threat_intel": ThreatIntelLoader(_source_path(data_dir, "threat_intel")),
         }
         
     def load_all(self) -> Dict[str, pd.DataFrame]:
