@@ -190,6 +190,14 @@ Active Anomaly Signals:
 
 With no files in `data/`, it falls back to the generated data described at the top. To use real feeds, put them in these formats (loaders for live APIs are not written):
 
+Place files named `honeypot`, `shodan`, `cve`, `github_poc`, and
+`threat_intel` in the directory passed to `--data-dir`. For each source, use
+`.jsonl`, `.json` (newline-delimited JSON records), or `.csv`. The loader
+checks those extensions in that order and reads a populated file ahead of an
+empty extensionless placeholder. When a source has no populated file, it uses
+generated sample data. For example, `data/honeypot.jsonl` overrides the
+repository's empty `data/honeypot` placeholder.
+
 ### Honeypot Data (JSON Lines or CSV)
 ```json
 {"timestamp": "2025-11-20T10:30:00", "source_ip": "192.168.1.1", "dest_port": 22, "attack_type": "ssh_bruteforce", "target_sector": "education", "severity_score": 7.5}
